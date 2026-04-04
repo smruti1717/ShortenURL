@@ -11,7 +11,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// Load saved URLs
 function loadData() {
     if (!fs.existsSync(DATA_FILE)) {
         fs.writeFileSync(DATA_FILE, JSON.stringify({}), "utf8");
@@ -20,22 +19,18 @@ function loadData() {
     return JSON.parse(data);
 }
 
-// Save URLs
 function saveData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
-// Generate short code
 function generateCode() {
     return Math.random().toString(36).substring(2, 8);
 }
 
-// Home route
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// API to shorten URL
 app.post("/shorten", (req, res) => {
     const { longUrl } = req.body;
 
@@ -56,7 +51,6 @@ app.post("/shorten", (req, res) => {
     });
 });
 
-// Redirect route
 app.get("/:code", (req, res) => {
     const data = loadData();
     const longUrl = data[req.params.code];
