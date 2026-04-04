@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  url-shortener:
+    build: .
+    container_name: url-shortener-container
+    ports:
+      - "3002:3000"
+    restart: always

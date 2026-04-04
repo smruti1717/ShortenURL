@@ -1,37 +1,36 @@
 const express = require("express");
 const fs = require("fs");
-const path = require("path");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const DATA_FILE = path.join(__dirname, "data.json");
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
-const DATA_FILE = "data.json";
-
-// Load saved URLs
 function loadData() {
     if (!fs.existsSync(DATA_FILE)) {
-        fs.writeFileSync(DATA_FILE, JSON.stringify({}));
+        fs.writeFileSync(DATA_FILE, JSON.stringify({}), "utf8");
     }
-    const data = fs.readFileSync(DATA_FILE);
+    const data = fs.readFileSync(DATA_FILE, "utf8");
     return JSON.parse(data);
 }
 
-// Save URLs
 function saveData(data) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), "utf8");
 }
 
-// Generate short code
 function generateCode() {
     return Math.random().toString(36).substring(2, 8);
 }
 
-// API to shorten URL
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 app.post("/shorten", (req, res) => {
     const { longUrl } = req.body;
 
@@ -45,12 +44,13 @@ app.post("/shorten", (req, res) => {
     data[code] = longUrl;
     saveData(data);
 
+    const baseUrl = req.protocol + "://" + req.get("host");
+
     res.json({
-        shortUrl: `http://localhost:${PORT}/${code}`
+        shortUrl: `${baseUrl}/${code}`
     });
 });
 
-// Redirect route
 app.get("/:code", (req, res) => {
     const data = loadData();
     const longUrl = data[req.params.code];
